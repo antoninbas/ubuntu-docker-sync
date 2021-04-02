@@ -1,0 +1,31 @@
+name: Sync
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # every 12 hours
+    - cron: '0 */12 * * *'
+
+
+jobs:
+  copy:
+    strategy:
+      matrix:
+        version: [20.04]
+    runs-on: ubuntu-latest
+    steps:
+    - name: pull
+      shell: bash
+      run: |
+        docker pull ubuntu:${{ matrix.version }}
+    - name: push
+      shell: bash
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        docker tag ubuntu:${{ matrix.version }} antrea/ubuntu:${{ matrix.version }}
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker push antrea/ubuntu:${{ matrix.version }}

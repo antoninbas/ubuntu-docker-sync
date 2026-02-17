@@ -16,16 +16,12 @@ jobs:
         version: [22.04, 24.04]
     runs-on: ubuntu-latest
     steps:
-    - name: pull
-      shell: bash
-      run: |
-        docker pull ubuntu:${{ matrix.version }}
-    - name: push
-      shell: bash
+    - name: Install crane
+      uses: imjasonh/setup-crane@v0.4
+    - name: Copy image
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        docker tag ubuntu:${{ matrix.version }} antrea/ubuntu:${{ matrix.version }}
-        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        docker push antrea/ubuntu:${{ matrix.version }}
+        crane auth login index.docker.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+        crane copy ubuntu:${{ matrix.version }} antrea/ubuntu:${{ matrix.version }}
